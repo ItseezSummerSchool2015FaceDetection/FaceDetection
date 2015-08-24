@@ -1,4 +1,4 @@
-set(target "sample_Shchedrin")
+set(target "crop")
 
 file(GLOB hdrs "*.hpp")
 file(GLOB srcs "*.cpp")
