@@ -18,9 +18,7 @@ void detectAndDisplay( Mat frame );
 String face_cascade_name = "haarcascade_frontalface_default.xml";
 
 CascadeClassifier face_cascade;
-CascadeClassifier eyes_cascade;
 string window_name = "Capture - Face detection";
-RNG rng(12345);
 
 
 /* Returns a list of files in a directory (except the ones that begin with a dot) */
