@@ -12,7 +12,7 @@ using namespace cv;
 #include <windows.h>
 
 /** Function Headers */
-void detectAndDisplay( Mat frame );
+void detectAndDisplay( Mat frame, string fileName);
 
 /** Global variables */
 String face_cascade_name = "haarcascade_frontalface_default.xml";
@@ -77,43 +77,71 @@ void GetFilesInDirectory(std::vector<string> &out, const string &directory)
 /** @function main */
 int main( int argc, const char** argv )
 {
-    VideoCapture cap(0);
+    bool useCamera = true;
+    bool useFiles = false;
+    String directory;
+    if(argc > 1){
+        useCamera = false;
+        useFiles = true;
+        directory = argv[1];
+    }
+    VideoCapture cap;
     Mat frame;
-
+    if(useCamera){
+        cap.open(0);
+        if(!cap.isOpened()){
+            cerr<<"Failed to open camera"<<endl;
+            return -1;
+        }
+        while(frame.empty()){
+            cap>>frame;
+        }
+    }
     //-- 1. Load the cascades
     if( !face_cascade.load( face_cascade_name ) ){ 
         cerr<<"Error loading cascade"<<endl;
         return -1; 
+    }    
+
+    vector<string> files;
+    if(useFiles){
+        GetFilesInDirectory(files, directory); 
     }
-
-
-    //-- 2. Read the video stream
-    if( cap.isOpened() )
+    while( true )
     {
-        cap>>frame;
-        while(frame.empty()){
+        if(useCamera){
             cap>>frame;
+            if( !frame.empty() ){
+                detectAndDisplay( frame, "camera"); 
+            }
+            else{
+                cout<<" --(!) No captured frame -- Break!"<<endl; 
+                break; 
+            }
         }
-        while( true )
-        {
-
-            cap>>frame;
-            //-- 3. Apply the classifier to the frame
-            if( !frame.empty() )
-            { detectAndDisplay( frame ); }
-            else
-            { printf(" --(!) No captured frame -- Break!"); break; }
-
-            int c = waitKey(10);
-            if( (char)c == 27 ) { break; }
+        if(useFiles){
+            if(files.empty()){
+                cout<<"finished"<<endl;
+                return 0;
+            }
+            string name = files.back();
+            cout<<"converting "<<name<<endl;
+            frame = imread(name);
+            files.pop_back();
+            detectAndDisplay(frame, name); 
+        }
+        
+        int c = waitKey(10);
+        if( c == 27 ) { 
+            break; 
         }
     }
+    
     return 0;
 }
 
 /** @function detectAndDisplay */
-void detectAndDisplay( Mat frame )
-{
+void detectAndDisplay( Mat frame , string fileName){
     static int counter = 0;
     counter++;
     std::vector<Rect> faces;
@@ -141,7 +169,7 @@ void detectAndDisplay( Mat frame )
         Size OptimalSize(64,64);
         resize(frame(roi_rect), finalImage, OptimalSize, 0, 0, INTER_AREA);
         char name[100];
-        sprintf(name, "%d_%d.png", counter,i);
+        sprintf(name, "%s_%d_%d_resized.png",fileName, counter,i);
         imshow("",finalImage);
         imwrite(name,finalImage);
 
