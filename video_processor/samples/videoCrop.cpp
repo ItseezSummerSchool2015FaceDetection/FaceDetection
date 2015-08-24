@@ -56,6 +56,8 @@
 /** @function detectAndDisplay */
 void detectAndDisplay( Mat frame )
 {
+    static int counter = 0;
+    counter++;
   std::vector<Rect> faces;
   Mat frame_gray;
 
@@ -63,10 +65,11 @@ void detectAndDisplay( Mat frame )
   equalizeHist( frame_gray, frame_gray );
 
   //-- Detect faces
-  face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+  face_cascade.detectMultiScale( frame_gray, faces, 1.01, 20, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
 
   for( size_t i = 0; i < faces.size(); i++ )
   {
+      cout<<faces[i].width<<" "<<faces[i].height<<endl;
    // rectangle(frame,faces[i],Scalar(255,255,0),2);
     Rect roi_rect = faces[i];
     roi_rect.y -=roi_rect.height * 0.3;
@@ -79,14 +82,17 @@ void detectAndDisplay( Mat frame )
     Mat finalImage;
     Size OptimalSize(64,64);
     resize(frame(roi_rect), finalImage, OptimalSize, 0, 0, INTER_AREA);
+    char name[100];
+    sprintf(name, "%d_%d.png", counter,i);
     imshow("",finalImage);
-    
+    imwrite(name,finalImage);
 
     Mat faceROI = frame_gray( faces[i] );
     std::vector<Rect> eyes;
 
     
   }
+  cout<<endl;
   //-- Show what you got
   //imshow( window_name, frame );
  }
