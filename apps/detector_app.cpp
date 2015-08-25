@@ -40,19 +40,19 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         cerr << "Error loading cascade"<<endl;
     }
     vector<Rect> faces;
-    anyface.detectMultiScale(image, faces, 1.1,5);
+    anyface.detectMultiScale(image, faces, 1.1,7);
     for(int i = 0; i < faces.size(); i++){
-        rectangle(res, faces[i],Scalar(0,0,200),2);
+        
 
         Rect roi_rect = faces[i];
         roi_rect.y -=roi_rect.height * 0.3;
         roi_rect.height *= 1.4;
         roi_rect.x -= roi_rect.width*0.1;
         roi_rect.width *= 1.2;
-
         roi_rect = roi_rect & Rect(0,0,image.cols,image.rows);
-       
-        classif.detectMultiScale(image(roi_rect), found,1.1,1);    
+
+        rectangle(res, roi_rect,Scalar(0,0,200),2);
+        classif.detectMultiScale(image(roi_rect), found,1.1,50);    
         for(int j = 0; j < found.size(); j++){
             rectangle(res(roi_rect), found[j],Scalar(100,200,0),2);
         }
