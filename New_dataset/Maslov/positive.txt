@@ -1,0 +1,4 @@
+positive/Maslov1_0_resized.png.png
+positive/Maslov2_0_resized.png.png
+positive/Maslov3_1_resized.png.png
+positive/Maslov4_0_resized.png.png

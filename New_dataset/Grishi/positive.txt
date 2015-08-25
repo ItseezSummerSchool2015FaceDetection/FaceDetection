@@ -1,0 +1,4 @@
+positive/Grishi1_0_resized.png.png
+positive/Grishi2_0_resized.png.png
+positive/Grishi3_0_resized.png.png
+positive/Grishi4_0_resized.png.png
