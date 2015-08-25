@@ -1,0 +1,5 @@
+positive/Malytin1_0_resized.png.png 13 0 0 64 64
+positive/Malytin2_0_resized.png.png 13 0 0 64 64
+positive/Malytin3_0_resized.png.png 13 0 0 64 64
+positive/Malytin4_0_resized.png.png 13 0 0 64 64
+positive/Malytin5_0_resized.png.png 13 0 0 64 64

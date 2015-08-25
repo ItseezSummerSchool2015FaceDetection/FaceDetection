@@ -1,0 +1,2 @@
+positive/Korushkin1_0_resized.png.png 9 0 0 64 64
+positive/Korushkin2_0_resized.png.png 9 0 0 64 64
