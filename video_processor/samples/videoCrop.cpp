@@ -3,6 +3,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 
 using namespace std;
@@ -12,7 +13,7 @@ using namespace cv;
 #include <windows.h>
 
 /** Function Headers */
-void detectAndDisplay( Mat frame, string fileName);
+void detectAndDisplay( Mat frame, const char* filePrefix);
 
 /** Global variables */
 String face_cascade_name = "haarcascade_frontalface_default.xml";
@@ -74,6 +75,22 @@ void GetFilesInDirectory(std::vector<string> &out, const string &directory)
 #endif
 } // GetFilesInDirectory
 
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
 /** @function main */
 int main( int argc, const char** argv )
 {
@@ -88,7 +105,7 @@ int main( int argc, const char** argv )
     VideoCapture cap;
     Mat frame;
     if(useCamera){
-        cap.open(0);
+        cap.open("video001.mp4");
         if(!cap.isOpened()){
             cerr<<"Failed to open camera"<<endl;
             return -1;
@@ -127,8 +144,16 @@ int main( int argc, const char** argv )
             string name = files.back();
             cout<<"converting "<<name<<endl;
             frame = imread(name);
+            transpose(frame,frame);
+            flip(frame,frame,1);
             files.pop_back();
-            detectAndDisplay(frame, name); 
+            vector<string> splitName;
+            splitName = split(directory,'\\');
+
+            splitName.back().pop_back();
+            splitName.back().push_back(0);
+            
+            detectAndDisplay(frame, splitName.back().c_str()); 
         }
         
         int c = waitKey(10);
@@ -141,7 +166,10 @@ int main( int argc, const char** argv )
 }
 
 /** @function detectAndDisplay */
-void detectAndDisplay( Mat frame , string fileName){
+void detectAndDisplay( Mat frame , const char* filePrefix){
+    char cmd[200];
+    sprintf(cmd,"mkdir %s", filePrefix);
+    system(cmd);
     static int counter = 0;
     counter++;
     std::vector<Rect> faces;
@@ -151,8 +179,10 @@ void detectAndDisplay( Mat frame , string fileName){
     equalizeHist( frame_gray, frame_gray );
 
     //-- Detect faces
-    face_cascade.detectMultiScale( frame_gray, faces, 1.01, 20, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
+    face_cascade.detectMultiScale( frame_gray, faces, 1.01, 60, 0|CV_HAAR_SCALE_IMAGE, Size(100, 100) );
+    if(faces.size() == 0){
+        cout<<"-----------WARNING! Image lost."<<endl;
+    }
     for( size_t i = 0; i < faces.size(); i++ )
     {
         cout<<faces[i].width<<" "<<faces[i].height<<endl;
@@ -168,9 +198,11 @@ void detectAndDisplay( Mat frame , string fileName){
         Mat finalImage;
         Size OptimalSize(64,64);
         resize(frame(roi_rect), finalImage, OptimalSize, 0, 0, INTER_AREA);
-        char name[100];
-        sprintf(name, "%s_%d_%d_resized.png",fileName, counter,i);
-        imshow("",finalImage);
+        char name[200];
+        cout<<filePrefix<<endl;
+        sprintf(name, "%s//Makarova%d_%d_resized.png",filePrefix, counter,i);
+        imshow("123",finalImage);
+        cout<<name<<endl;
         imwrite(name,finalImage);
 
         Mat faceROI = frame_gray( faces[i] );

@@ -1,0 +1,5 @@
+positive/Moshkin1_0_resized.png.png
+positive/Moshkin2_0_resized.png.png
+positive/Moshkin3_0_resized.png.png
+positive/Moshkin4_0_resized.png.png
+positive/Moshkin5_0_resized.png.png

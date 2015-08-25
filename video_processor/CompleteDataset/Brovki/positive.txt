@@ -1,0 +1,5 @@
+positive/Brovki1_0_resized.png.png 2 0 0 64 64
+positive/Brovki2_0_resized.png.png 2 0 0 64 64
+positive/Brovki3_0_resized.png.png 2 0 0 64 64
+positive/Brovki4_0_resized.png.png 2 0 0 64 64
+positive/Brovki5_0_resized.png.png 2 0 0 64 64

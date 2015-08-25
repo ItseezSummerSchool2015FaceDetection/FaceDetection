@@ -1,0 +1,12 @@
+positive/Kozitsi10_0.png.png
+positive/Kozitsi1_0.png.png
+positive/Kozitsi11_0.png.png
+positive/Kozitsi18_0.png.png
+positive/Kozitsi19_0.png.png
+positive/Kozitsi20_0.png.png
+positive/Kozitsi2_0.png.png
+positive/Kozitsi21_0.png.png
+positive/Kozitsi22_0.png.png
+positive/Kozitsi3_0.png.png
+positive/Kozitsi4_0.png.png
+positive/Kozitsi5_0.png.png

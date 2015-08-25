@@ -1,0 +1,4 @@
+positive/Kiselev1_0_resized.png.png 8 0 0 64 64
+positive/Kiselev2_1_resized.png.png 8 0 0 64 64
+positive/Kiselev3_0_resized.png.png 8 0 0 64 64
+positive/Kiselev4_1_resized.png.png 8 0 0 64 64

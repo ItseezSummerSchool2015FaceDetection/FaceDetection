@@ -1,0 +1,4 @@
+positive/Manano1_0_resized.png.png
+positive/Manano2_0_resized.png.png
+positive/Manano3_0_resized.png.png
+positive/Manano4_0_resized.png.png
