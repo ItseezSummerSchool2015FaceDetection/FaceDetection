@@ -9,8 +9,19 @@
 using namespace std;
 using namespace cv;
 
-#define WINDOWS
+
+//#define WINDOWS
+#ifdef WINDOWS
 #include <windows.h>
+#endif
+
+#ifndef WINDOWS
+#include <sys/stat.h>
+#include <dirent.h>
+#endif
+
+
+
 
 /** Function Headers */
 void detectAndDisplay( Mat frame, const char* filePrefix);
@@ -53,7 +64,7 @@ void GetFilesInDirectory(std::vector<string> &out, const string &directory)
     class dirent *ent;
     class stat st;
 
-    dir = opendir(directory);
+    dir = opendir(directory.c_str());
     while ((ent = readdir(dir)) != NULL) {
         const string file_name = ent->d_name;
         const string full_file_name = directory + "/" + file_name;
@@ -150,9 +161,7 @@ int main( int argc, const char** argv )
             vector<string> splitName;
             splitName = split(directory,'\\');
 
-            splitName.back().pop_back();
-            splitName.back().push_back(0);
-            
+
             detectAndDisplay(frame, splitName.back().c_str()); 
         }
         
@@ -183,7 +192,7 @@ void detectAndDisplay( Mat frame , const char* filePrefix){
     if(faces.size() == 0){
         cout<<"-----------WARNING! Image lost."<<endl;
     }
-    for( size_t i = 0; i < faces.size(); i++ )
+    for( int i = 0; i < faces.size(); i++ )
     {
         //cout<<faces[i].width<<" "<<faces[i].height<<endl;
         // rectangle(frame,faces[i],Scalar(255,255,0),2);
