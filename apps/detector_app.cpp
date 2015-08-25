@@ -33,6 +33,8 @@ const Scalar green(0, 255, 0);
 const Scalar blue(255, 0, 0);
 const Scalar colors[] = {red, green, blue};
 
+
+
 void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
     res = image.clone();
     vector<Rect> found;
@@ -41,7 +43,7 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         cerr << "Error loading cascade"<<endl;
     }
     vector<Rect> faces;
-    anyface.detectMultiScale(image, faces, 1.1,7);
+    anyface.detectMultiScale(image, faces, 1.1,15);
     for(int i = 0; i < faces.size(); i++){
         
 
@@ -54,10 +56,10 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
 
         rectangle(res, roi_rect,Scalar(0,0,200),2);
         Mat recognizeImage;
-        Size OptimalSize(64,64);
+        Size OptimalSize(128,128);
         resize(image(roi_rect), recognizeImage, OptimalSize, 0, 0, INTER_AREA);
         imshow("r",recognizeImage);
-        classif.detectMultiScale(recognizeImage, found,1.1,4);    
+        classif.detectMultiScale(image(roi_rect), found,1.1,50);    
         if(found.size()){
             rectangle(res, roi_rect,Scalar(0,200,0),2);
         }
