@@ -5,6 +5,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 
 using namespace std;
 using namespace cv;
@@ -52,9 +53,13 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         roi_rect = roi_rect & Rect(0,0,image.cols,image.rows);
 
         rectangle(res, roi_rect,Scalar(0,0,200),2);
-        classif.detectMultiScale(image(roi_rect), found,1.1,50);    
-        for(int j = 0; j < found.size(); j++){
-            rectangle(res(roi_rect), found[j],Scalar(100,200,0),2);
+        Mat recognizeImage;
+        Size OptimalSize(64,64);
+        resize(image(roi_rect), recognizeImage, OptimalSize, 0, 0, INTER_AREA);
+        imshow("r",recognizeImage);
+        classif.detectMultiScale(recognizeImage, found,1.1,4);    
+        if(found.size()){
+            rectangle(res, roi_rect,Scalar(0,200,0),2);
         }
     }
 
