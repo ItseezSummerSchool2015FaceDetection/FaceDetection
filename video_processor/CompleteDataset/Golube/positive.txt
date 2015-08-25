@@ -1,0 +1,4 @@
+positive/Golube1_1_resized.png.png 4 0 0 64 64
+positive/Golube2_0_resized.png.png 4 0 0 64 64
+positive/Golube3_0_resized.png.png 4 0 0 64 64
+positive/Golube4_0_resized.png.png 4 0 0 64 64

@@ -1,0 +1,2 @@
+positive/Moskalenk1_0_resized.png.png 17 0 0 64 64
+positive/Moskalenk2_0_resized.png.png 17 0 0 64 64

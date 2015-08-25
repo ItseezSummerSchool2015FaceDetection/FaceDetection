@@ -1,0 +1,3 @@
+positive/Hizbulli1_0_resized.png.png 6 0 0 64 64
+positive/Hizbulli2_0_resized.png.png 6 0 0 64 64
+positive/Hizbulli3_0_resized.png.png 6 0 0 64 64

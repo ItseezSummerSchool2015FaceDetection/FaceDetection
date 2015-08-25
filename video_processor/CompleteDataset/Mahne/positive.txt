@@ -1,0 +1,4 @@
+positive/Mahne1_0_resized.png.png 11 0 0 64 64
+positive/Mahne2_0_resized.png.png 11 0 0 64 64
+positive/Mahne3_1_resized.png.png 11 0 0 64 64
+positive/Mahne4_0_resized.png.png 11 0 0 64 64

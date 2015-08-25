@@ -1,0 +1,4 @@
+positive/Semiche1_0_resized.png.png 18 0 0 64 64
+positive/Semiche2_0_resized.png.png 18 0 0 64 64
+positive/Semiche3_0_resized.png.png 18 0 0 64 64
+positive/Semiche4_0_resized.png.png 18 0 0 64 64
