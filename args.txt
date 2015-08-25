@@ -1,0 +1,6 @@
+opencv_createsamples.exe -vec <path>/test.vec -bg <path>negatives.dat -info <path>positives.dat
+-w 64 -h 64 -bgthresh -1 -num <num of samples>
+
+opencv_traincascade -vec <path>/test.vec -bg <path>/negatives.dat -data <folder for cascade>
+-numPos <num of positives for each step> -numNeg <num of negatives on each step>
+-w 64 -w 64 -numStages <...> -precalcValBufSize 1024 -featureType LBP -maxFalseAlarmRate 0.2
