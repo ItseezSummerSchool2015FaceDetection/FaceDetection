@@ -77,8 +77,8 @@ void GetFilesInDirectory(std::vector<string> &out, const string &directory)
 
         const bool is_directory = (st.st_mode & S_IFDIR) != 0;
 
-        if (is_directory)
-            continue;
+        //if (is_directory)
+        //    continue;
 
         out.push_back(full_file_name);
     }
@@ -107,11 +107,11 @@ int main( int argc, const char** argv )
 {
     bool useCamera = true;
     bool useFiles = false;
-    String directory;
+    String big_directory;
     if(argc > 1){
         useCamera = false;
         useFiles = true;
-        directory = argv[1];
+        big_directory = argv[1];
     }
     VideoCapture cap;
     Mat frame;
@@ -130,44 +130,55 @@ int main( int argc, const char** argv )
         cerr<<"Error loading cascade"<<endl;
         return -1; 
     }    
-
-    vector<string> files;
+    vector<string> dirs;
     if(useFiles){
-        GetFilesInDirectory(files, directory); 
-    }
-    while( true )
-    {
-        if(useCamera){
-            cap>>frame;
-            if( !frame.empty() ){
-                detectAndDisplay( frame, "camera"); 
-            }
-            else{
-                cout<<" --(!) No captured frame -- Break!"<<endl; 
-                break; 
-            }
+        GetFilesInDirectory(dirs, big_directory);
+        cout<<dirs.size()<<endl;
+        for(int i = 0; i < dirs.size(); i++){
+            cout<<dirs[i]<<endl;
         }
+    }
+    while(!dirs.empty() || useCamera) {
+        vector<string> files;
+        string subdir;
         if(useFiles){
-            if(files.empty()){
-                cout<<"finished"<<endl;
+            subdir = dirs.back();
+            dirs.pop_back();
+            GetFilesInDirectory(files, subdir);
+        }
+        while (true) {
+            if (useCamera) {
+                cap >> frame;
+                if (!frame.empty()) {
+                    detectAndDisplay(frame, "camera");
+                }
+                else {
+                    cout << " --(!) No captured frame -- Break!" << endl;
+                    break;
+                }
+            }
+            if (useFiles) {
+                if (files.empty()) {
+                    cout << subdir<<" finished" << endl;
+                    break;
+                }
+                string name = files.back();
+                cout << "converting " << name << endl;
+                frame = imread(name);
+                transpose(frame, frame);
+                flip(frame, frame, 1);
+                files.pop_back();
+                vector<string> splitName;
+                splitName = split(subdir, '/');
+
+
+                detectAndDisplay(frame, splitName.back().c_str());
+            }
+
+            int c = waitKey(10);
+            if (c == 27) {
                 return 0;
             }
-            string name = files.back();
-            cout<<"converting "<<name<<endl;
-            frame = imread(name);
-            transpose(frame,frame);
-            flip(frame,frame,1);
-            files.pop_back();
-            vector<string> splitName;
-            splitName = split(directory,'\\');
-
-
-            detectAndDisplay(frame, splitName.back().c_str()); 
-        }
-        
-        int c = waitKey(10);
-        if( c == 27 ) { 
-            break; 
         }
     }
     
@@ -209,7 +220,7 @@ void detectAndDisplay( Mat frame , const char* filePrefix){
         resize(frame(roi_rect), finalImage, OptimalSize, 0, 0, INTER_AREA);
         char name[200];
         cout<<filePrefix<<endl;
-        sprintf(name, "%s//%d_%d_resized.png",filePrefix, counter,i);
+        sprintf(name, "%s//%s_%d_%d_resized.png",filePrefix,filePrefix, counter,i);
         imshow("123",finalImage);
         cout<<name<<endl;
         imwrite(name,finalImage);
