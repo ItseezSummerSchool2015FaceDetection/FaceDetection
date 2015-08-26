@@ -1,154 +1,178 @@
-#include <string>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
 
 #include "opencv2/core/core.hpp"
+#include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
 
-#include "CascadeFactory.hpp"
+using namespace cv;
+using namespace std;
 
-const char* params =
-    "{ h | help     | false | print usage                                   }"
-    "{   | detector |       | path to folder with detectors                 }"
-    "{   | image    |       | image to detect objects on                    }"
-    "{   | video    |       | video file to detect on                       }"
-    "{   | camera   | false | whether to detect on video stream from camera }";
+#define WINDOWS
+#include<windows.h>
 
-
-
-void detectOnImage(CascadeFactory& factory, const cv::Mat& image, cv::Mat& res)
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
 {
-	cv::CascadeClassifier anyface;
-	if (!anyface.load("./haarcascade_frontalface_default.xml"))
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim))
 	{
-		std::cerr << "Error loading haarcascade " << std::endl;
+		elems.push_back(item);
+	}
+	return elems;
+}
+
+std::vector<std::string> split(const std::string &s, char delim)
+{
+	std::vector<std::string> elems;
+	split(s, delim, elems);
+	return elems;
+}
+
+void GetFilesInDirectory(std::vector<string> &out, const string &directory)
+{
+#ifdef WINDOWS
+	HANDLE dir;
+	WIN32_FIND_DATA file_data;
+
+	if ((dir = FindFirstFile((directory + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
+		return; /* No files found */
+
+	do {
+		const string file_name = file_data.cFileName;
+		const string full_file_name = directory + "/" + file_name;
+		const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+		if (file_name[0] == '.')
+			continue;
+
+		if (is_directory)
+			continue;
+
+		out.push_back(full_file_name);
+	} while (FindNextFile(dir, &file_data));
+
+	FindClose(dir);
+#else
+	DIR *dir;
+	class dirent *ent;
+	class stat st;
+
+	dir = opendir(directory);
+	while ((ent = readdir(dir)) != NULL) {
+		const string file_name = ent->d_name;
+		const string full_file_name = directory + "/" + file_name;
+
+		if (file_name[0] == '.')
+			continue;
+
+		if (stat(full_file_name.c_str(), &st) == -1)
+			continue;
+
+		const bool is_directory = (st.st_mode & S_IFDIR) != 0;
+
+		if (is_directory)
+			continue;
+
+		out.push_back(full_file_name);
+	}
+	closedir(dir);
+#endif
+} // GetFilesInDirectory
+
+
+static void read(string path, vector<Mat>& images, vector<int>& labels)
+{
+	vector<string> files;
+	GetFilesInDirectory(files, path);
+
+	if (files.size() == 0)
+	{
+		cerr << "There is no files for training!" << endl;
 		return;
 	}
 
-	std::vector<cv::Rect> faces;
-	std::vector<cv::Rect> found;
+	vector<string> splitName;
 
-	std::vector<int> people;
-	std::vector<std::string> peopleNames;
-
-	res = image.clone();
-
-	double scaleFactor = 1.1;
-	int minNeighbors = 15;
-
-	anyface.detectMultiScale(image, faces, scaleFactor, minNeighbors);
-	for (int i = 0; i < faces.size(); i++)
+	for (size_t i = 0; i < files.size(); i++)
 	{
-		cv::Rect roi_rect = faces[i];
-		roi_rect.y -= roi_rect.height * 0.3;
-		roi_rect.height *= 1.4;
-		roi_rect.x -= roi_rect.width * 0.1;
-		roi_rect.width *= 1.2;
-		roi_rect = roi_rect & cv::Rect(0, 0, image.cols, image.rows);
-
-		rectangle(res, roi_rect, cv::Scalar(0,0,200),2);
-		cv::Mat recognizeImage;
-		cv::Size OptimalSize(128,128);
-		resize(image(roi_rect), recognizeImage, OptimalSize, 0, 0, cv::INTER_AREA);
-		imshow("r", recognizeImage);
-
-		people = factory.detectPerson(image(roi_rect), found);
-		peopleNames = factory.getPeople(people);
-		if (found.size())
-		{
-			rectangle(res, roi_rect, cv::Scalar(0, 200, 0), 2);
-
-			std::cout << "Was found: " << std::endl;
-			for (int j = 0; j < peopleNames.size(); j++)
-			{
-				std::cout << people[i] << " " << peopleNames[i] << std::endl;
-			}
-			std::cout << "-------------------------" << std::endl;
-		}
+		images.push_back(imread(files[i], 0));
+		splitName = split(files[i],'/');
+		labels.push_back(stoi(splitName.back().substr(0,2)));
 	}
 }
 
 
-int main(int argc, char** argv)
+void test(string path, Ptr<FaceRecognizer> model)
 {
-	// Parse command line arguments.
-	cv::CommandLineParser parser(argc, argv, params);
-	// If help flag is present, print help message and exit.
-	if (parser.get<bool>("help"))
+	vector<Mat> testImages;
+	vector<int> testLabels;
+
+	read(path, testImages, testLabels);
+
+	string result_message;
+	int predictedLabel = -1;
+	int correct = 0;
+
+	for (int i = 0; i < testImages.size(); i++)
 	{
-		parser.printParams();
-		return 0;
+		predictedLabel = model->predict(testImages[i]);
+
+		result_message = format("Predicted class = %d / Actual class = %d.", predictedLabel, testLabels[i]);
+		cout << result_message << endl;
+
+		if (predictedLabel == testLabels[i])
+			correct++;
 	}
 
-	std::string detector_dir = parser.get<std::string>("detector");
-	std::string image_file = parser.get<std::string>("image");
-	std::string video_file = parser.get<std::string>("video");
-	bool use_camera = parser.get<bool>("camera");
+	cout << "Total correctness: " << correct / (double) testImages.size() << endl; 
+}
 
 
-	CascadeFactory factory = CascadeFactory();
-
-	factory.initialize(detector_dir);
-
-	if (!image_file.empty())
-	{   
-		cv::Mat image = cv::imread(image_file);
-		cv::Mat res;
-		detectOnImage(factory, image, res);
-		cv::imshow("detect", res);
-		int key = cv::waitKey();
-	}
-	else if (!video_file.empty())
+int main(int argc, const char *argv[])
+{
+    if (argc != 3)
 	{
-		int key = 0;
-		cv::VideoCapture cap(video_file);
-		if(!cap.isOpened())
-		{
-			std::cerr << "Can not open video" << std::endl;
-			return -1;
-		}
-		cv::Mat image, res;
-		do
-		{
-			cap >> image;
-			if(image.empty())
-			{
-				continue;
-			}
-			detectOnImage(factory, image, res);
-			cv::imshow("detect", res);
-			key = cv::waitKey(1);
-		}
-		while (key != 27);
+        cout << "usage: " << argv[0] << " <csv.ext>" << endl;
+        exit(1);
+    }
+    string fn = string(argv[1]);
 
-	}
-	else if (use_camera)
+    vector<Mat> images;
+    vector<int> labels;
+
+    try
 	{
-		int key = 0;
-		cv::VideoCapture cap(0);
-		if(!cap.isOpened())
-		{
-			std::cerr << "Can not connect to camera" << std::endl;
-			return -1;
-		}
-		cv::Mat image, res;
-		do
-		{
-			cap >> image;
-			if(image.empty())
-			{
-				continue;
-			}
-			detectOnImage(factory, image, res);
-			cv::imshow("detect", res);
-			key = cv::waitKey(1);
-		}
-		while (key != 27);
-	}
-	else
+        read(fn, images, labels);
+    } 
+	catch (cv::Exception& e)
 	{
-		std::cout << "Declare a source of images to detect on." << std::endl;
-	}
+        cerr << "Error opening file \"" << fn << "\". Reason: " << e.msg << endl;
+        exit(1);
+    }
+
+    if(images.size() <= 1)
+	{
+        string error_message = "This demo needs at least 2 images to work. Please add more images to your data set!";
+        CV_Error(CV_StsError, error_message);
+    }
+
+	/*
+    Mat testSample = imread(argv[2], 0);
+    int testLabel = atoi(argv[3]);
+	*/
+
+	Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+    model->train(images, labels);
+
+    //int predictedLabel = model->predict(testSample);
+
+    //string result_message = format("Predicted class = %d / Actual class = %d.", predictedLabel, testLabel);
+    //cout << result_message << endl;
+
+	test(argv[2], model);
 
     return 0;
 }
