@@ -33,6 +33,59 @@ const Scalar green(0, 255, 0);
 const Scalar blue(255, 0, 0);
 const Scalar colors[] = {red, green, blue};
 
+#define WINDOWS
+#include<windows.h>
+
+void GetFilesInDirectory(std::vector<string> &out, const string &directory)
+{
+#ifdef WINDOWS
+    HANDLE dir;
+    WIN32_FIND_DATA file_data;
+
+    if ((dir = FindFirstFile((directory + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
+        return; /* No files found */
+
+    do {
+        const string file_name = file_data.cFileName;
+        const string full_file_name = directory + "/" + file_name;
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (is_directory)
+            continue;
+
+        out.push_back(full_file_name);
+    } while (FindNextFile(dir, &file_data));
+
+    FindClose(dir);
+#else
+    DIR *dir;
+    class dirent *ent;
+    class stat st;
+
+    dir = opendir(directory);
+    while ((ent = readdir(dir)) != NULL) {
+        const string file_name = ent->d_name;
+        const string full_file_name = directory + "/" + file_name;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (stat(full_file_name.c_str(), &st) == -1)
+            continue;
+
+        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
+
+        if (is_directory)
+            continue;
+
+        out.push_back(full_file_name);
+    }
+    closedir(dir);
+#endif
+} // GetFilesInDirectory
 
 
 void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
@@ -43,10 +96,22 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         cerr << "Error loading cascade"<<endl;
     }
     vector<Rect> faces;
-    anyface.detectMultiScale(image, faces, 1.1,15);
+    anyface.detectMultiScale(image, faces, 1.1,7);
+    vector<Mat> everyone;
+    vector<string> files;
+    GetFilesInDirectory(files,"negatives");
+    everyone.resize(files.size());
+    for(int i = 0; i < files.size(); i++){
+        Mat tmp, gs;
+        tmp = imread(files[i]);
+        cvtColor(tmp,gs,CV_BGR2GRAY);
+        equalizeHist( gs, everyone[i] );
+    }
+    cout<<"read done"<<endl;
+
     for(int i = 0; i < faces.size(); i++){
         
-
+        
         Rect roi_rect = faces[i];
         roi_rect.y -=roi_rect.height * 0.3;
         roi_rect.height *= 1.4;
@@ -58,8 +123,29 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         Mat recognizeImage;
         Size OptimalSize(128,128);
         resize(image(roi_rect), recognizeImage, OptimalSize, 0, 0, INTER_AREA);
+        Size patternSize(64,64);
+        Mat m64, gs64, eq64;
+        resize(image(roi_rect), m64, patternSize, 0, 0, INTER_AREA);
+        cvtColor(m64,gs64,CV_BGR2GRAY);
+        equalizeHist( gs64, eq64 );
+        if(true){
+            double minNorm = norm(m64);
+            int min_i = 0;
+            for(int i_pat = 0; i_pat < everyone.size(); i_pat++){
+                if(minNorm > norm(eq64 - everyone[i_pat])){
+                    minNorm = norm(eq64 - everyone[i_pat]);
+                    min_i = i_pat;
+                }
+            }
+            cout<<files[min_i].substr(9,13)<<endl;
+            char name1[100], name2[100];
+            sprintf(name1,"%d found", i);
+            sprintf(name2,"%d orig", i);
+            imshow(name1,everyone[min_i]);
+            imshow(name2,m64);
+        }
         imshow("r",recognizeImage);
-        classif.detectMultiScale(image(roi_rect), found,1.1,50);    
+        classif.detectMultiScale(image(roi_rect), found,1.1,950);    
         if(found.size()){
             rectangle(res, roi_rect,Scalar(0,200,0),2);
         }
