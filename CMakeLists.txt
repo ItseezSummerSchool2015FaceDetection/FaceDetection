@@ -32,7 +32,8 @@ set(LIBRARY_DEPS ${OpenCV_LIBS})
 
 # Add apps for detection.
 add_subdirectory(apps)
-
+add_subdirectory(face-recognition)
+add_subdirectory(video_processor)
 # Report generation summary.
 message( STATUS "")
 message( STATUS "General configuration for ${PROJECT_NAME}")

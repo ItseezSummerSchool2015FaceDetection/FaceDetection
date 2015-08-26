@@ -5,6 +5,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 
 using namespace std;
 using namespace cv;
@@ -32,6 +33,8 @@ const Scalar green(0, 255, 0);
 const Scalar blue(255, 0, 0);
 const Scalar colors[] = {red, green, blue};
 
+
+
 void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
     res = image.clone();
     vector<Rect> found;
@@ -40,7 +43,7 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         cerr << "Error loading cascade"<<endl;
     }
     vector<Rect> faces;
-    anyface.detectMultiScale(image, faces, 1.1,7);
+    anyface.detectMultiScale(image, faces, 1.1,15);
     for(int i = 0; i < faces.size(); i++){
         
 
@@ -52,9 +55,13 @@ void detectOnImage(CascadeClassifier &classif, const Mat &image, Mat &res){
         roi_rect = roi_rect & Rect(0,0,image.cols,image.rows);
 
         rectangle(res, roi_rect,Scalar(0,0,200),2);
+        Mat recognizeImage;
+        Size OptimalSize(128,128);
+        resize(image(roi_rect), recognizeImage, OptimalSize, 0, 0, INTER_AREA);
+        imshow("r",recognizeImage);
         classif.detectMultiScale(image(roi_rect), found,1.1,50);    
-        for(int j = 0; j < found.size(); j++){
-            rectangle(res(roi_rect), found[j],Scalar(100,200,0),2);
+        if(found.size()){
+            rectangle(res, roi_rect,Scalar(0,200,0),2);
         }
     }
 
