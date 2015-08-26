@@ -13,7 +13,7 @@ using namespace cv;
 #include <windows.h>
 
 /** Function Headers */
-void detectAndDisplay( Mat frame, const char* filePrefix);
+void detectAndDisplay( Mat frame, const char* outputDir, const char* filePrefix);
 
 /** Global variables */
 String face_cascade_name = "haarcascade_frontalface_default.xml";
@@ -96,10 +96,12 @@ int main( int argc, const char** argv )
 {
     bool useCamera = true;
     bool useFiles = false;
+    bool useVideo = false;
     String directory;
     if(argc > 1){
         useCamera = false;
-        useFiles = true;
+        useFiles = false;
+        useVideo = true;
         directory = argv[1];
     }
     VideoCapture cap;
@@ -124,16 +126,43 @@ int main( int argc, const char** argv )
     if(useFiles){
         GetFilesInDirectory(files, directory); 
     }
+    if(useVideo){
+        GetFilesInDirectory(files, directory); 
+    }
     while( true )
     {
         if(useCamera){
             cap>>frame;
             if( !frame.empty() ){
-                detectAndDisplay( frame, "camera"); 
+                detectAndDisplay( frame, "camera", "camera"); 
             }
             else{
                 cout<<" --(!) No captured frame -- Break!"<<endl; 
                 break; 
+            }
+        }
+        if(useVideo){
+            if(files.empty()){
+                cout<<"finished"<<endl;
+                return 0;
+            }
+            string name = files.back();
+            files.pop_back();
+            vector<string> splitName;
+            splitName = split(name,'/');
+            cout<<"##"<<name<<"##"<<endl;
+            cap.open(name);
+            if(!cap.isOpened()){
+                cerr<<"can not open video file "<<name<<endl;
+                continue;
+            }
+            string prefix = splitName.back().substr(0,2);
+            cout<<"converting "<<name<<endl;
+            cap>>frame;
+            cap>>frame;
+            while(!frame.empty()){
+                detectAndDisplay(frame,"photo",prefix.c_str()); 
+                cap>>frame;
             }
         }
         if(useFiles){
@@ -153,7 +182,7 @@ int main( int argc, const char** argv )
             splitName.back().pop_back();
             splitName.back().push_back(0);
             
-            detectAndDisplay(frame, splitName.back().c_str()); 
+            detectAndDisplay(frame, splitName.back().c_str(), splitName.back().c_str()); 
         }
         
         int c = waitKey(10);
@@ -166,9 +195,9 @@ int main( int argc, const char** argv )
 }
 
 /** @function detectAndDisplay */
-void detectAndDisplay( Mat frame , const char* filePrefix){
+void detectAndDisplay( Mat frame , const char* outputDir, const char* filePrefix){
     char cmd[200];
-    sprintf(cmd,"mkdir %s", filePrefix);
+    sprintf(cmd,"mkdir %s", outputDir);
     system(cmd);
     static int counter = 0;
     counter++;
@@ -182,6 +211,7 @@ void detectAndDisplay( Mat frame , const char* filePrefix){
     face_cascade.detectMultiScale( frame_gray, faces, 1.01, 60, 0|CV_HAAR_SCALE_IMAGE, Size(100, 100) );
     if(faces.size() == 0){
         cout<<"-----------WARNING! Image lost."<<endl;
+        counter--;
     }
     for( size_t i = 0; i < faces.size(); i++ )
     {
@@ -200,9 +230,9 @@ void detectAndDisplay( Mat frame , const char* filePrefix){
         resize(frame(roi_rect), finalImage, OptimalSize, 0, 0, INTER_AREA);
         char name[200];
         cout<<filePrefix<<endl;
-        sprintf(name, "%s//Makarova%d_%d_resized.png",filePrefix, counter,i);
-        imshow("123",finalImage);
-        cout<<name<<endl;
+        sprintf(name, "%s//%s_c%d_i%d_resized.png",outputDir,filePrefix, counter,i);
+        imshow("output",finalImage);
+        cout<<"Output: "<<name<<endl;
         imwrite(name,finalImage);
 
         Mat faceROI = frame_gray( faces[i] );
