@@ -34,6 +34,7 @@ set(LIBRARY_DEPS ${OpenCV_LIBS})
 add_subdirectory(apps)
 add_subdirectory(face-recognition)
 add_subdirectory(video_processor)
+add_subdirectory(image_merge)
 # Report generation summary.
 message( STATUS "")
 message( STATUS "General configuration for ${PROJECT_NAME}")

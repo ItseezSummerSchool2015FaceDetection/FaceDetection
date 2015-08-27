@@ -12,5 +12,5 @@ FisherFaceRecognizer::~FisherFaceRecognizer()
 
 int FisherFaceRecognizer::predict(const cv::Mat&)
 {
-
+    return 0;
 }

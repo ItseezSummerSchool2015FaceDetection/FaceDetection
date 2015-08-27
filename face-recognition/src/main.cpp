@@ -166,6 +166,7 @@ int main(int argc, char** argv)
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/objdetect/objdetect.hpp"
 
 #include "Utility.hpp"
 #include "CascadeFactory.hpp"
@@ -202,7 +203,7 @@ void test(string path, Ptr<FaceRecognizer> model)
 
 int main(int argc, const char *argv[])
 {
-    if (argc != 3)
+    if (argc == 0)
 	{
         cout << "usage: " << argv[0] << " <csv.ext>" << endl;
         exit(1);
@@ -228,20 +229,57 @@ int main(int argc, const char *argv[])
         CV_Error(CV_StsError, error_message);
     }
 
-	/*
-    Mat testSample = imread(argv[2], 0);
-    int testLabel = atoi(argv[3]);
-	*/
+	
+    Mat testSample = imread(argv[2]);
+    int testLabel = -1;
+    //int testLabel = atoi(argv[3]);
+	
+    Mat display_matrix = testSample.clone();
+    CascadeClassifier cascade;
+    cascade.load("haarcascade_frontalface_default.xml");
+    std::vector<cv::Rect> faces;
+    std::vector<string> names;
+    names.push_back("");
+    names.push_back("Golubev");
+    names.push_back("Kozitsin");
+    names.push_back("Kuklina");
+    names.push_back("Mahnev");
+    names.push_back("Maslova");
+    names.push_back("Moshkina");
+    names.push_back("Semichev");
+    names.push_back("Shchedrin");
+    names.push_back("Makarova");
+    cascade.detectMultiScale(testSample, faces, 1.01, 1);
+    for(int i = 0; i < faces.size(); i++){
+        
+        cv::Rect roi_rect = faces[i];
+		roi_rect.y -= roi_rect.height * 0.3;
+		roi_rect.height *= 1.4;
+		roi_rect.x -= roi_rect.width * 0.1;
+		roi_rect.width *= 1.2;
+		roi_rect = roi_rect & cv::Rect(0, 0, testSample.cols, testSample.rows);
 
-	Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
-    model->train(images, labels);
+		cv::Mat recognizeImage;
+		cv::Size OptimalSize(64,64);
+		resize(testSample(roi_rect), recognizeImage, OptimalSize, 0, 0, cv::INTER_AREA);
+        Mat gray;
+        cvtColor(recognizeImage, gray, CV_BGR2GRAY);
+	    Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+        model->train(images, labels);
 
-    //int predictedLabel = model->predict(testSample);
+        int predictedLabel = model->predict(gray);
+        cv::putText(display_matrix, names[predictedLabel], cv::Point(roi_rect.x - 5 , roi_rect.y - 5), 1, 2, cv::Scalar(200, 0, 0), 2);
+        string result_message = format("Predicted class = %d / Actual class = %d.", predictedLabel, testLabel);
+        cout << result_message << endl;
+        rectangle(display_matrix, roi_rect, cv::Scalar(0, 200, 0), 2);
+    }
+   imshow(" ", display_matrix);
+  // imwrite("001.png", display_matrix);
 
-    //string result_message = format("Predicted class = %d / Actual class = %d.", predictedLabel, testLabel);
-    //cout << result_message << endl;
+    waitKey(0);
 
-	test(argv[2], model);
+
+	//test(argv[2], model);
 
     return 0;
 }
